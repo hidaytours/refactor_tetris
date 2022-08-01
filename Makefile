@@ -1,2 +1,8 @@
-tetris: tetris.c
-	gcc tetris.c -lncurses -o tetris
+NAME = tetris
+INCLUDE = ./include
+
+CFLAGS = -lncurses -I $(INCLUDE)
+
+all: $(NAME)
+$(NAME): tetris.c
+	$(CC) $(CFLAGS) tetris.c -o tetris
