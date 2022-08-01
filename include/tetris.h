@@ -7,8 +7,8 @@
 # include <sys/time.h>
 # include <ncurses.h>
 
-# define R 20
-# define C 15
+# define ROWS 20
+# define COLUMNS 15
 # define T 1
 # define F 0
 

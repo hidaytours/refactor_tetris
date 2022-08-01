@@ -1,6 +1,6 @@
 #include "tetris.h"
 
-char Table[R][C] = {0};
+char Table[ROWS][COLUMNS] = {0};
 int final = 0;
 char GameOn = T;
 suseconds_t timer = 400000;
@@ -49,7 +49,7 @@ int FunctionCP(Struct shape){
 	int i, j;
 	for(i = 0; i < shape.width;i++) {
 		for(j = 0; j < shape.width ;j++){
-			if((shape.col+j < 0 || shape.col+j >= C || shape.row+i >= R)){
+			if((shape.col+j < 0 || shape.col+j >= COLUMNS || shape.row+i >= ROWS)){
 				if(array[i][j])
 					return F;
 				
@@ -74,7 +74,7 @@ void FunctionRS(Struct shape){
 }
 
 void FunctionPT(){
-	char Buffer[R][C] = {0};
+	char Buffer[ROWS][COLUMNS] = {0};
 	int i, j;
 	for(i = 0; i < current.width ;i++){
 		for(j = 0; j < current.width ; j++){
@@ -83,11 +83,11 @@ void FunctionPT(){
 		}
 	}
 	clear();
-	for(i=0; i<C-9; i++)
+	for(i=0; i<COLUMNS-9; i++)
 		printw(" ");
 	printw("42 Tetris\n");
-	for(i = 0; i < R ;i++){
-		for(j = 0; j < C ; j++){
+	for(i = 0; i < ROWS ;i++){
+		for(j = 0; j < COLUMNS ; j++){
 			printw("%c ", (Table[i][j] + Buffer[i][j])? '#': '.');
 		}
 		printw("\n");
@@ -113,7 +113,7 @@ int main() {
 	gettimeofday(&before_now, NULL);
 	set_timeout(1);
 	Struct new_shape = FunctionCS(StructsArray[rand()%7]);
-    new_shape.col = rand()%(C-new_shape.width+1);
+    new_shape.col = rand() % (COLUMNS - new_shape.width + 1);
     new_shape.row = 0;
     FunctionDS(current);
 	current = new_shape;
@@ -138,25 +138,25 @@ int main() {
 							}
 						}
 						int n, m, sum, count=0;
-						for(n=0;n<R;n++){
+						for (n = 0; n < ROWS; n++){
 							sum = 0;
-							for(m=0;m< C;m++) {
+							for (m = 0; m < COLUMNS; m++) {
 								sum+=Table[n][m];
 							}
-							if(sum==C){
+							if (sum == COLUMNS) {
 								count++;
 								int l, k;
-								for(k = n;k >=1;k--)
-									for(l=0;l<C;l++)
+								for(k = n; k >= 1;k --)
+									for(l=0;l<COLUMNS;l++)
 										Table[k][l]=Table[k-1][l];
-								for(l=0;l<C;l++)
+								for(l=0;l<COLUMNS;l++)
 									Table[k][l]=0;
 								timer-=decrease--;
 							}
 						}
 						final += 100*count;
 						Struct new_shape = FunctionCS(StructsArray[rand()%7]);
-						new_shape.col = rand()%(C-new_shape.width+1);
+						new_shape.col = rand() % (COLUMNS - new_shape.width + 1);
 						new_shape.row = 0;
 						FunctionDS(current);
 						current = new_shape;
@@ -201,28 +201,28 @@ int main() {
 							}
 						}
 						int n, m, sum, count=0;
-						for(n=0;n<R;n++){
+						for (n = 0; n < ROWS; n++) {
 							sum = 0;
-							for(m=0;m< C;m++) {
-								sum+=Table[n][m];
+							for (m = 0; m < COLUMNS; m++) {
+								sum += Table[n][m];
 							}
-							if(sum==C){
+							if (sum == COLUMNS) {
 								count++;
 								int l, k;
-								for(k = n;k >=1;k--)
-									for(l=0;l<C;l++)
+								for (k = n; k >= 1; k--)
+									for (l = 0; l < COLUMNS; l++)
 										Table[k][l]=Table[k-1][l];
-								for(l=0;l<C;l++)
+								for (l = 0; l < COLUMNS; l++)
 									Table[k][l]=0;
 								timer-=decrease--;
 							}
 						}
 						Struct new_shape = FunctionCS(StructsArray[rand()%7]);
-						new_shape.col = rand()%(C-new_shape.width+1);
+						new_shape.col = rand()%(COLUMNS - new_shape.width+1);
 						new_shape.row = 0;
 						FunctionDS(current);
 						current = new_shape;
-						if(!FunctionCP(current)){
+						if (!FunctionCP(current)) {
 							GameOn = F;
 						}
 					}
@@ -251,8 +251,8 @@ int main() {
 	FunctionDS(current);
 	endwin();
 	int i, j;
-	for(i = 0; i < R ;i++){
-		for(j = 0; j < C ; j++){
+	for(i = 0; i < ROWS ;i++){
+		for(j = 0; j < COLUMNS ; j++){
 			printf("%c ", Table[i][j] ? '#': '.');
 		}
 		printf("\n");
