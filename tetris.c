@@ -15,7 +15,7 @@ const Shape shapes_array[7] = {
 	{(char *[]){(char[]){1, 1}, (char[]){1, 1}}, 2},
 	{(char *[]){(char[]){0, 0, 0, 0}, (char[]){1, 1, 1, 1}, (char[]){0, 0, 0, 0}, (char[]){0, 0, 0, 0}}, 4}};
 
-Shape FunctionCS(Shape shape)
+Shape create_shape(Shape shape)
 {
 	Shape new_shape = shape;
 	char **copyshape = shape.array;
@@ -30,7 +30,7 @@ Shape FunctionCS(Shape shape)
 	return (new_shape);
 }
 
-void FunctionDS(Shape shape)
+void free_shape(Shape shape)
 {
 	int i;
 	for (i = 0; i < shape.width; i++)
@@ -38,7 +38,7 @@ void FunctionDS(Shape shape)
 	free(shape.array);
 }
 
-bool FunctionCP(Shape shape)
+bool is_game_on(Shape shape)
 {
 	char **array = shape.array;
 	int i, j;
@@ -58,9 +58,9 @@ bool FunctionCP(Shape shape)
 	return (true);
 }
 
-void FunctionRS(Shape shape)
+void rotate_shape(Shape shape)
 {
-	Shape temp = FunctionCS(shape);
+	Shape temp = create_shape(shape);
 	int i, j, k, width;
 	width = shape.width;
 	for (i = 0; i < width; i++)
@@ -70,10 +70,10 @@ void FunctionRS(Shape shape)
 			shape.array[i][j] = temp.array[k][i];
 		}
 	}
-	FunctionDS(temp);
+	free_shape(temp);
 }
 
-void FunctionPT(int score)
+void display_game(int score)
 {
 	char Buffer[ROWS][COLUMNS] = {0};
 	int i, j;
@@ -117,14 +117,13 @@ bool has_to_update(struct timeval before_now)
 
 void set_timeout(int time)
 {
-	time = 1;
-	timeout(1);
+	timeout(time);
 }
 
 int main()
 {
 	srand(time(0));
-	bool	is_game_on;
+	bool	game_on;
 	int		score;
 	score = 0;
 	int c;
@@ -132,23 +131,23 @@ int main()
 	struct timeval before_now;
 	gettimeofday(&before_now, NULL);
 	set_timeout(1);
-	Shape new_shape = FunctionCS(shapes_array[rand() % 7]);
+	Shape new_shape = create_shape(shapes_array[rand() % 7]);
 	new_shape.col = rand() % (COLUMNS - new_shape.width + 1);
 	new_shape.row = 0;
-	FunctionDS(current);
+	free_shape(current);
 	current = new_shape;
-	is_game_on = FunctionCP(current);
-	FunctionPT(score);
-	while (is_game_on)
+	game_on = is_game_on(current);
+	display_game(score);
+	while (game_on)
 	{
 		if ((c = getch()) != ERR)
 		{
-			Shape temp = FunctionCS(current);
+			Shape temp = create_shape(current);
 			switch (c)
 			{
 			case 's':
 				temp.row++; // move down
-				if (FunctionCP(temp))
+				if (is_game_on(temp))
 					current.row++;
 				else
 				{
@@ -182,41 +181,41 @@ int main()
 						}
 					}
 					score += 100 * count;
-					Shape new_shape = FunctionCS(shapes_array[rand() % 7]);
+					Shape new_shape = create_shape(shapes_array[rand() % 7]);
 					new_shape.col = rand() % (COLUMNS - new_shape.width + 1);
 					new_shape.row = 0;
-					FunctionDS(current);
+					free_shape(current);
 					current = new_shape;
-					is_game_on = FunctionCP(current);
+					game_on = is_game_on(current);
 				}
 				break;
 			case 'd':
 				temp.col++;
-				if (FunctionCP(temp))
+				if (is_game_on(temp))
 					current.col++;
 				break;
 			case 'a':
 				temp.col--;
-				if (FunctionCP(temp))
+				if (is_game_on(temp))
 					current.col--;
 				break;
 			case 'w':
-				FunctionRS(temp);
-				if (FunctionCP(temp))
-					FunctionRS(current);
+				rotate_shape(temp);
+				if (is_game_on(temp))
+					rotate_shape(current);
 				break;
 			}
-			FunctionDS(temp);
-			FunctionPT(score);
+			free_shape(temp);
+			display_game(score);
 		}
 		if (has_to_update(before_now))
 		{
-			Shape temp = FunctionCS(current);
+			Shape temp = create_shape(current);
 			switch ('s')
 			{
 			case 's':
 				temp.row++;
-				if (FunctionCP(temp))
+				if (is_game_on(temp))
 					current.row++;
 				else
 				{
@@ -249,37 +248,36 @@ int main()
 							timer -= decrease--;
 						}
 					}
-					Shape new_shape = FunctionCS(shapes_array[rand() % 7]);
+					Shape new_shape = create_shape(shapes_array[rand() % 7]);
 					new_shape.col = rand() % (COLUMNS - new_shape.width + 1);
 					new_shape.row = 0;
-					FunctionDS(current);
+					free_shape(current);
 					current = new_shape;
-					if (!FunctionCP(current))
-						is_game_on = false;
+					game_on = is_game_on(current);
 				}
 				break;
 			case 'd':
 				temp.col++;
-				if (FunctionCP(temp))
+				if (is_game_on(temp))
 					current.col++;
 				break;
 			case 'a':
 				temp.col--;
-				if (FunctionCP(temp))
+				if (is_game_on(temp))
 					current.col--;
 				break;
 			case 'w':
-				FunctionRS(temp);
-				if (FunctionCP(temp))
-					FunctionRS(current);
+				rotate_shape(temp);
+				if (is_game_on(temp))
+					rotate_shape(current);
 				break;
 			}
-			FunctionDS(temp);
-			FunctionPT(score);
+			free_shape(temp);
+			display_game(score);
 			gettimeofday(&before_now, NULL);
 		}
 	}
-	FunctionDS(current);
+	free_shape(current);
 	endwin();
 	int i, j;
 	for (i = 0; i < ROWS; i++)
