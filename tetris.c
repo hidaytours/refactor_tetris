@@ -1,33 +1,32 @@
 #include "tetris.h"
 
-char Table[ROWS][COLUMNS] = {0};
 suseconds_t timer = 400000;
 int decrease = 1000;
 
 Shape current;
 
 const Shape shapes_array[7] = {
-	{(char *[]){(char[]){0, 1, 1}, (char[]){1, 1, 0}, (char[]){0, 0, 0}}, 3},
-	{(char *[]){(char[]){1, 1, 0}, (char[]){0, 1, 1}, (char[]){0, 0, 0}}, 3},
-	{(char *[]){(char[]){0, 1, 0}, (char[]){1, 1, 1}, (char[]){0, 0, 0}}, 3},
-	{(char *[]){(char[]){0, 0, 1}, (char[]){1, 1, 1}, (char[]){0, 0, 0}}, 3},
-	{(char *[]){(char[]){1, 0, 0}, (char[]){1, 1, 1}, (char[]){0, 0, 0}}, 3},
-	{(char *[]){(char[]){1, 1}, (char[]){1, 1}}, 2},
-	{(char *[]){(char[]){0, 0, 0, 0}, (char[]){1, 1, 1, 1}, (char[]){0, 0, 0, 0}, (char[]){0, 0, 0, 0}}, 4}};
+	{(char *[]){(char[]){0, 1, 1}, (char[]){1, 1, 0}, (char[]){0, 0, 0}}, 3, 0, 0},
+	{(char *[]){(char[]){1, 1, 0}, (char[]){0, 1, 1}, (char[]){0, 0, 0}}, 3, 0, 0},
+	{(char *[]){(char[]){0, 1, 0}, (char[]){1, 1, 1}, (char[]){0, 0, 0}}, 3, 0, 0},
+	{(char *[]){(char[]){0, 0, 1}, (char[]){1, 1, 1}, (char[]){0, 0, 0}}, 3, 0, 0},
+	{(char *[]){(char[]){1, 0, 0}, (char[]){1, 1, 1}, (char[]){0, 0, 0}}, 3, 0, 0},
+	{(char *[]){(char[]){1, 1}, (char[]){1, 1}}, 2, 0, 0},
+	{(char *[]){(char[]){0, 0, 0, 0}, (char[]){1, 1, 1, 1}, (char[]){0, 0, 0, 0}, (char[]){0, 0, 0, 0}}, 4, 0, 0}};
 
-Shape create_shape(Shape shape)
+Shape copy_shape(Shape shape)
 {
-	Shape new_shape = shape;
+	Shape copied = shape;
 	char **copyshape = shape.array;
-	new_shape.array = (char **)malloc(new_shape.width * sizeof(char *));
+	copied.array = (char **)malloc(copied.width * sizeof(char *));
 	int i, j;
-	for (i = 0; i < new_shape.width; i++)
+	for (i = 0; i < copied.width; i++)
 	{
-		new_shape.array[i] = (char *)malloc(new_shape.width * sizeof(char));
-		for (j = 0; j < new_shape.width; j++)
-			new_shape.array[i][j] = copyshape[i][j];
+		copied.array[i] = (char *)malloc(copied.width * sizeof(char));
+		for (j = 0; j < copied.width; j++)
+			copied.array[i][j] = copyshape[i][j];
 	}
-	return (new_shape);
+	return (copied);
 }
 
 void free_shape(Shape shape)
@@ -38,7 +37,7 @@ void free_shape(Shape shape)
 	free(shape.array);
 }
 
-bool is_game_on(Shape shape)
+bool is_game_on(Shape shape, const char table[ROWS][COLUMNS])
 {
 	char **array = shape.array;
 	int i, j;
@@ -51,7 +50,7 @@ bool is_game_on(Shape shape)
 				if (array[i][j])
 					return (false);
 			}
-			else if (Table[shape.row + i][shape.col + j] && array[i][j])
+			else if (table[shape.row + i][shape.col + j] && array[i][j])
 				return (false);
 		}
 	}
@@ -60,7 +59,7 @@ bool is_game_on(Shape shape)
 
 void rotate_shape(Shape shape)
 {
-	Shape temp = create_shape(shape);
+	Shape temp = copy_shape(shape);
 	int i, j, k, width;
 	width = shape.width;
 	for (i = 0; i < width; i++)
@@ -73,7 +72,7 @@ void rotate_shape(Shape shape)
 	free_shape(temp);
 }
 
-void display_game(int score)
+void display_game(const char table[ROWS][COLUMNS], const int score)
 {
 	char Buffer[ROWS][COLUMNS] = {0};
 	int i, j;
@@ -92,7 +91,7 @@ void display_game(int score)
 	for (i = 0; i < ROWS; i++)
 	{
 		for (j = 0; j < COLUMNS; j++)
-			printw("%c ", (Table[i][j] + Buffer[i][j]) ? '#' : '.');
+			printw("%c ", (table[i][j] + Buffer[i][j]) ? '#' : '.');
 		printw("\n");
 	}
 	printw("\nScore: %d\n", score);
@@ -120,9 +119,21 @@ void set_timeout(int time)
 	timeout(time);
 }
 
+void update_current(Shape *current)
+{
+	Shape new;
+
+	new = copy_shape(shapes_array[rand() % 7]);
+	new.col = rand() % (COLUMNS - new.width + 1);
+	new.row = 0;
+	free_shape(*current);
+	*current = new;
+}
+
 int main()
 {
 	srand(time(0));
+	char Table[ROWS][COLUMNS] = {0};
 	bool	game_on;
 	int		score;
 	score = 0;
@@ -131,23 +142,19 @@ int main()
 	struct timeval before_now;
 	gettimeofday(&before_now, NULL);
 	set_timeout(1);
-	Shape new_shape = create_shape(shapes_array[rand() % 7]);
-	new_shape.col = rand() % (COLUMNS - new_shape.width + 1);
-	new_shape.row = 0;
-	free_shape(current);
-	current = new_shape;
-	game_on = is_game_on(current);
-	display_game(score);
+	update_current(&current);
+	game_on = is_game_on(current, Table);
+	display_game(Table, score);
 	while (game_on)
 	{
 		if ((c = getch()) != ERR)
 		{
-			Shape temp = create_shape(current);
+			Shape temp = copy_shape(current);
 			switch (c)
 			{
 			case 's':
 				temp.row++; // move down
-				if (is_game_on(temp))
+				if (is_game_on(temp, Table))
 					current.row++;
 				else
 				{
@@ -181,41 +188,37 @@ int main()
 						}
 					}
 					score += 100 * count;
-					Shape new_shape = create_shape(shapes_array[rand() % 7]);
-					new_shape.col = rand() % (COLUMNS - new_shape.width + 1);
-					new_shape.row = 0;
-					free_shape(current);
-					current = new_shape;
-					game_on = is_game_on(current);
+					update_current(&current);
+					game_on = is_game_on(current, Table);
 				}
 				break;
 			case 'd':
 				temp.col++;
-				if (is_game_on(temp))
+				if (is_game_on(temp, Table))
 					current.col++;
 				break;
 			case 'a':
 				temp.col--;
-				if (is_game_on(temp))
+				if (is_game_on(temp, Table))
 					current.col--;
 				break;
 			case 'w':
 				rotate_shape(temp);
-				if (is_game_on(temp))
+				if (is_game_on(temp, Table))
 					rotate_shape(current);
 				break;
 			}
 			free_shape(temp);
-			display_game(score);
+			display_game(Table, score);
 		}
 		if (has_to_update(before_now))
 		{
-			Shape temp = create_shape(current);
+			Shape temp = copy_shape(current);
 			switch ('s')
 			{
 			case 's':
 				temp.row++;
-				if (is_game_on(temp))
+				if (is_game_on(temp, Table))
 					current.row++;
 				else
 				{
@@ -248,32 +251,33 @@ int main()
 							timer -= decrease--;
 						}
 					}
-					Shape new_shape = create_shape(shapes_array[rand() % 7]);
+					score += 100 * count;
+					Shape new_shape = copy_shape(shapes_array[rand() % 7]);
 					new_shape.col = rand() % (COLUMNS - new_shape.width + 1);
 					new_shape.row = 0;
 					free_shape(current);
 					current = new_shape;
-					game_on = is_game_on(current);
+					game_on = is_game_on(current, Table);
 				}
 				break;
 			case 'd':
 				temp.col++;
-				if (is_game_on(temp))
+				if (is_game_on(temp, Table))
 					current.col++;
 				break;
 			case 'a':
 				temp.col--;
-				if (is_game_on(temp))
+				if (is_game_on(temp, Table))
 					current.col--;
 				break;
 			case 'w':
 				rotate_shape(temp);
-				if (is_game_on(temp))
+				if (is_game_on(temp, Table))
 					rotate_shape(current);
 				break;
 			}
 			free_shape(temp);
-			display_game(score);
+			display_game(Table, score);
 			gettimeofday(&before_now, NULL);
 		}
 	}

@@ -1,7 +1,7 @@
 NAME = tetris
 INCLUDE = ./include
 
-CFLAGS = -lncurses -I $(INCLUDE)
+CFLAGS = -Wall -Wextra -Werror -lncurses -I $(INCLUDE)
 
 all: $(NAME)
 $(NAME): tetris.c
