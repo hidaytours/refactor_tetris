@@ -16,6 +16,6 @@ typedef struct {
 	int 	width;
 	int 	row;
 	int		col;
-}	Shape;
+}	Block;
 
 #endif
